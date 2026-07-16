@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ Lý Nhập Vai & Luyện Nghe Nói Tiếng Trung HSK 1-5</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-hover: #0f766e;
+            --primary-light: #ccfbf1;
+            --bg-color: #f0fdfa;
+            --card-bg: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            main {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+
+        /* Sidebar: Setup & Dashboard */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: var(--text-muted);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+            margin-top: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Weakness Dashboard style */
+        .weakness-list {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+
+        .weakness-item {
+            background-color: #f8fafc;
+            border-left: 3px solid #f59e0b;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Chat Window Area */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            height: calc(100vh - 140px);
+            min-height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .message-ai {
+            background-color: #f1f5f9;
+            align-self: flex-start;
+            border-top-left-radius: 2px;
+        }
+
+        .message-user {
+            background-color: var(--primary-light);
+            color: var(--text-dark);
+            align-self: flex-end;
+            border-top-right-radius: 2px;
+        }
+
+        .hanzi-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.5px;
+        }
+
+        .pinyin-text {
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+
+        .translation-text {
+            font-size: 0.85rem;
+            color: #1e293b;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .chat-controls {
+            padding: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            background-color: #f8fafc;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .input-bar {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .input-bar textarea {
+            flex: 1;
+            resize: none;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.6rem;
+            height: 42px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .mic-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .mic-btn:hover {
+            background-color: #dc2626;
+        }
+
+        .mic-active {
+            animation: pulse 1.5s infinite;
+            background-color: #b91c1c;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+            100% { transform: scale(1); }
+        }
+
+        .sound-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        /* Assessment Card */
+        .assessment-card {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .score-badge {
+            display: inline-block;
+            background-color: #22c55e;
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .feedback-section h4 {
+            color: #166534;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Trợ Lý Nhập Vai & Luyện Nghe Nói Tiếng Trung AI</h1>
+        <p>Bởi GV. Thanh Hoa - Tự học giao tiếp phản xạ đa tình huống HSK 1-5</p>
+    </header>
+
+    <main>
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <!-- Cấu hình bài học -->
+            <div class="card">
+                <div class="card-title">📖 Thiết Lập Bài Học</div>
+                <div class="form-group">
+                    <label for="hsk-level">Trình độ Mục tiêu</label>
+                    <select id="hsk-level">
+                        <option value="HSK 1">HSK 1 (Sơ cấp)</option>
+                        <option value="HSK 2">HSK 2 (Sơ cấp)</option>
+                        <option value="HSK 3">HSK 3 (Trung cấp thấp)</option>
+                        <option value="HSK 4">HSK 4 (Trung cấp)</option>
+                        <option value="HSK 5">HSK 5 (Trung cấp cao)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="scenario">Tình huống Giao tiếp</label>
+                    <select id="scenario">
+                        <option value="Giới thiệu bản thân">Giới thiệu bản thân</option>
+                        <option value="Làm quen bạn mới">Làm quen bạn mới</option>
+                        <option value="Gọi món ăn">Gọi món ăn</option>
+                        <option value="Mua sắm">Mua sắm</option>
+                        <option value="Hỏi đường">Hỏi đường</option>
+                        <option value="Đi taxi">Đi taxi</option>
+                        <option value="Đặt khách sạn">Đặt khách sạn</option>
+                        <option value="Phỏng vấn xin việc">Phỏng vấn xin việc</option>
+                        <option value="Giao tiếp trường học">Giao tiếp trường học</option>
+                        <option value="Du lịch Trung Quốc">Du lịch Trung Quốc</option>
+                        <option value="Tiếng Trung thương mại">Tiếng Trung thương mại</option>
+                        <option value="Giao tiếp nhà máy">Giao tiếp nhà máy</option>
+                        <option value="Xuất nhập khẩu">Xuất nhập khẩu</option>
+                        <option value="Logistics">Logistics</option>
+                        <option value="Hội chợ Trung Quốc">Hội chợ Trung Quốc</option>
+                        <option value="Làm việc với khách hàng">Làm việc với khách hàng</option>
+                    </select>
+                </div>
+                <button class="btn" id="start-btn">Bắt Đầu Học</button>
+                <button class="btn btn-secondary" id="reset-btn">Đặt lại hội thoại</button>
+            </div>
+
+            <!-- Lộ trình cá nhân hóa -->
+            <div class="card">
+                <div class="card-title">🎯 Lộ Trình Cá Nhân Hóa</div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Điểm yếu được phát hiện qua các câu đối thoại sẽ được thống kê dưới đây:</p>
+                <ul class="weakness-list" id="weakness-container">
+                    <li style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">Chưa có dữ liệu. Hãy bắt đầu nói chuyện với AI!</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- CHAT WINDOW -->
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-box">
+                <div class="message-bubble message-ai">
+                    <div class="hanzi-text">你好！请选择你想要练习的场景，然后点击“Bắt Đầu Học” để bắt đầu luyện nghe nói nhé!</div>
+                    <div class="pinyin-text">Nǐ hǎo! Qǐng xuǎnzé nǐ xiǎng yào liànxí de chǎngjǐng, ránhòu diǎnjī "Bắt Đầu Học" de bāshì kāishǐ liànxí tīng shuō ne!</div>
+                    <div class="translation-text">Chào bạn! Hãy chọn chủ đề tình huống bạn muốn học, sau đó nhấn "Bắt Đầu Học" để bắt đầu luyện nghe nói nhé!</div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading-spinner" id="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <span>Giáo viên AI đang lắng nghe và phân tích...</span>
+            </div>
+
+            <!-- Điều khiển chat -->
+            <div class="chat-controls">
+                <div class="input-bar">
+                    <textarea id="text-input" placeholder="Hãy nói bằng micro hoặc gõ câu trả lời của bạn vào đây..."></textarea>
+                    <button class="mic-btn" id="mic-btn" title="Ghi âm câu nói của bạn">
+                        🎙️
+                    </button>
+                    <button class="btn" id="send-btn" style="width: auto;">Gửi</button>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 0.4rem;">
+                    * Lưu ý: Hãy nói to, rõ ràng và sử dụng trình duyệt Chrome để nhận diện giọng nói chuẩn xác nhất.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- CẤU HÌNH API ---
+        const GEMINI_API_KEY = "PASTE_YOUR_KEY_HERE";
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
+
+        // --- TRẠNG THÁI APP ---
+        let currentHsk = "HSK 1";
+        let currentScenario = "Giới thiệu bản thân";
+        let conversationHistory = [];
+        let recognition;
+        let isRecording = false;
+
+        // --- DOM ELEMENTS ---
+        const chatBox = document.getElementById('chat-box');
+        const textInput = document.getElementById('text-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const hskSelect = document.getElementById('hsk-level');
+        const scenarioSelect = document.getElementById('scenario');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const weaknessContainer = document.getElementById('weakness-container');
+
+        // --- OFFLINE FALLBACKS ---
+        const FALLBACKS = {
+            "Giới thiệu bản thân": {
+                "ai_message": {
+                    "hanzi": "你好！我叫张华，我是你的中文老师。你叫什么名字？你是哪国人？",
+                    "pinyin": "Nǐ hǎo! Wǒ jiào Zhāng Huá, wǒ shì nǐ de Zhōngwén lǎoshī. Nǐ jiào shénme míngzì? Nǐ shì nǎ guó rén?",
+                    "vietnamese": "Chào bạn! Tôi tên Trương Hoa, là giáo viên tiếng Trung của bạn. Bạn tên là gì? Bạn là người nước nào?",
+                    "prompt_question": "说说你的名字和国籍吧。"
+                }
+            },
+            "Làm quen bạn mới": {
+                "ai_message": {
+                    "hanzi": "你好！很高兴认识你。你是这里的学生吗？你学习什么专业？",
+                    "pinyin": "Nǐ hǎo! Hěn gāoxìng rènshì nǐ. Nǐ shì zhèlǐ de xuéshēng ma? Nǐ xuéxí shénme zhuānyè?",
+                    "vietnamese": "Chào bạn! Rất vui được quen biết bạn. Bạn có phải học sinh ở đây không? Bạn học ngành học nào?",
+                    "prompt_question": "告诉我你的专业和学校。"
+                }
+            }
+        };
+
+        // --- PHÁT ÂM (TEXT TO SPEECH) ---
+        function playAudio(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.85; // Tốc độ hơi chậm cho người học
+                
+                // Cố gắng tìm giọng chuẩn phổ thông Trung Quốc đại lục
+                const voices = window.speechSynthesis.getVoices();
+                const cnVoice = voices.find(voice => voice.lang === 'zh-CN' && voice.name.includes('Google'));
+                if (cnVoice) utterance.voice = cnVoice;
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Trình duyệt không hỗ trợ phát âm!");
+            }
+        }
+
+        // --- GHI ÂM (SPEECH TO TEXT) ---
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'zh-CN'; // Nhận dạng giọng nói tiếng Trung
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micBtn.classList.add('mic-active');
+                textInput.placeholder = "Đang lắng nghe... Hãy nói tiếng Trung!";
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micBtn.classList.remove('mic-active');
+                textInput.placeholder = "Hãy nói bằng micro hoặc gõ câu trả lời của bạn vào đây...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                textInput.value = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Lỗi nhận dạng:", event.error);
+                alert("Có lỗi xảy ra khi nhận diện giọng nói. Xin thử lại!");
+            };
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) {
+                alert("Thiết bị hoặc trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+                return;
+            }
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        // --- CÁ NHÂN HÓA LỘ TRÌNH (LOCAL STORAGE) ---
+        function updateWeaknessUI() {
+            const weaknesses = JSON.parse(localStorage.getItem('weaknesses')) || [];
+            if (weaknesses.length === 0) {
+                weaknessContainer.innerHTML = `<li style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">Chưa có dữ liệu. Hãy tích cực đối thoại!</li>`;
+                return;
+            }
+            weaknessContainer.innerHTML = weaknesses.map(item => `
+                <li class="weakness-item">
+                    <strong>${item}</strong>
+                    <div style="font-size:0.75rem; color:#d97706;">→ Hãy ôn luyện thêm các câu liên quan!</div>
+                </li>
+            `).join('');
+        }
+
+        function addWeakness(weakness) {
+            if (!weakness || weakness === "Không" || weakness === "None") return;
+            let weaknesses = JSON.parse(localStorage.getItem('weaknesses')) || [];
+            if (!weaknesses.includes(weakness)) {
+                weaknesses.push(weakness);
+                localStorage.setItem('weaknesses', JSON.stringify(weaknesses));
+                updateWeaknessUI();
+            }
+        }
+
+        // --- XỬ LÝ CHAT VÀ API ---
+        async function fetchAIResponse(userMessage) {
+            loadingSpinner.style.display = 'flex';
+            
+            // System prompt chi tiết hướng dẫn AI linh hoạt, liên tục phản hồi dựa trên ý của người dùng và chủ động hỏi mở rộng
+            const systemInstruction = `You are a warm, highly interactive native Chinese teacher. 
+Your goal is to conduct natural, organic Chinese conversations at ${currentHsk} level under scenario "${currentScenario}".
+
+CRITICAL BEHAVIOR:
+- You must NOT stick to a rigid script. Be fully flexible and reactive to whatever the student says (even if they go slightly off-topic or give brief answers).
+- Continuously ask open-ended questions related to the student's background, preferences, and real life to encourage them to speak.
+- Avoid answering with dry, static lines.
+- For every turn, evaluate the student's grammatical errors, word-order mistakes, and potential pronunciation pitfalls in simple Vietnamese.
+- Provide a clear tone or sandhi warning (pronunciation_feedback).
+- Detect and extract any specific weakness category (e.g., "Thanh điệu 4", "Bổ ngữ kết quả") for personalized path tracking.
+
+Respond strictly in pure JSON with this exact schema:
+{
+  "ai_message": {
+    "hanzi": "The next Chinese reply to maintain dynamic conversation",
+    "pinyin": "Pinyin transcription",
+    "vietnamese": "Natural translation",
+    "prompt_question": "Open-ended question to nudge the student to talk more"
+  },
+  "evaluation": {
+    "score_pronunciation": score out of 100,
+    "score_grammar": score out of 100,
+    "score_overall": score out of 100,
+    "pronunciation_feedback": "Short feedback on tricky tones/pinyin in Vietnamese",
+    "grammar_feedback": "Constructive Vietnamese explanation of grammar/word order errors if any",
+    "native_suggestions": ["Alternative natural way 1", "Alternative natural way 2"],
+    "detected_weakness": "One short specific phrase of their weakness to log, or empty"
+  }
+}`;
+
+            const messages = [
+                { role: "user", parts: [{ text: `Mục tiêu bài học: ${currentScenario} trình độ ${currentHsk}. Gửi lời chào và mở đầu đoạn hội thoại bằng 1 câu hỏi mở.` }] }
+            ];
+
+            if (userMessage) {
+                // Thêm lịch sử nếu có
+                conversationHistory.forEach(item => {
+                    messages.push(item);
+                });
+                messages.push({ role: "user", parts: [{ text: userMessage }] });
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: messages,
+                        systemInstruction: { parts: [{ text: systemInstruction }] },
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+
+                const data = await response.json();
+                loadingSpinner.style.display = 'none';
+
+                let rawText = data.candidates[0].content.parts[0].text;
+                // Safe JSON parse
+                rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+                const parsedData = JSON.parse(rawText);
+
+                if (userMessage) {
+                    conversationHistory.push({ role: "user", parts: [{ text: userMessage }] });
+                }
+                conversationHistory.push({ role: "model", parts: [{ text: rawText }] });
+
+                return parsedData;
+
+            } catch (error) {
+                console.error("API error, switching to offline fallback:", error);
+                loadingSpinner.style.display = 'none';
+                
+                // Trả về fallback offline thông minh
+                return FALLBACKS[currentScenario] || FALLBACKS["Giới thiệu bản thân"];
+            }
+        }
+
+        function appendMessage(sender, data, isEvaluation = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message-bubble', sender === 'ai' ? 'message-ai' : 'message-user');
+
+            let content = '';
+            if (sender === 'ai') {
+                content = `
+                    <div class="hanzi-text">
+                        ${data.ai_message.hanzi}
+                        <button class="sound-btn" onclick="playAudio('${data.ai_message.hanzi}')">🔊</button>
+                    </div>
+                    <div class="pinyin-text">${data.ai_message.pinyin}</div>
+                    <div class="translation-text"><strong>Dịch:</strong> ${data.ai_message.vietnamese}</div>
+                    <div class="translation-text" style="color:var(--primary); font-weight:500;">
+                        <strong>Gợi ý trả lời:</strong> ${data.ai_message.prompt_question}
+                    </div>
+                `;
+                
+                if (isEvaluation && data.evaluation) {
+                    content += `
+                        <div class="assessment-card">
+                            <span class="score-badge">Chấm điểm: ${data.evaluation.score_overall}/100</span>
+                            <div class="feedback-section">
+                                <h4>💡 Nhận xét phát âm & biến điệu:</h4>
+                                <p>${data.evaluation.pronunciation_feedback || 'Rất tốt!'}</p>
+                                <h4>✍️ Lỗi ngữ pháp & Hành văn:</h4>
+                                <p>${data.evaluation.grammar_feedback || 'Chưa phát hiện lỗi sai.'}</p>
+                                <h4>🌟 Gợi ý kiểu người bản xứ:</h4>
+                                <ul style="padding-left:1rem; margin-top:0.2rem;">
+                                    ${data.evaluation.native_suggestions.map(s => `<li>${s}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    // Lưu điểm yếu của học viên vào hệ thống cá nhân hóa
+                    if (data.evaluation.detected_weakness) {
+                        addWeakness(data.evaluation.detected_weakness);
+                    }
+                }
+            } else {
+                content = `<div class="hanzi-text" style="font-size:1.15rem;">${data}</div>`;
+            }
+
+            messageDiv.innerHTML = content;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // --- SỰ KIỆN NÚT BẤM ---
+        startBtn.addEventListener('click', async () => {
+            currentHsk = hskSelect.value;
+            currentScenario = scenarioSelect.value;
+            conversationHistory = [];
+            chatBox.innerHTML = '';
+
+            const res = await fetchAIResponse();
+            if (res) {
+                appendMessage('ai', res);
+                // Tự động phát âm câu chào đầu tiên của AI
+                playAudio(res.ai_message.hanzi);
+            }
+        });
+
+        sendBtn.addEventListener('click', async () => {
+            const userMsg = textInput.value.trim();
+            if (!userMsg) return;
+
+            appendMessage('user', userMsg);
+            textInput.value = '';
+
+            const res = await fetchAIResponse(userMsg);
+            if (res) {
+                appendMessage('ai', res, true);
+                playAudio(res.ai_message.hanzi);
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (confirm("Bạn có muốn xóa dữ liệu điểm yếu cũ và bắt đầu lại lộ trình không?")) {
+                localStorage.removeItem('weaknesses');
+                conversationHistory = [];
+                chatBox.innerHTML = `
+                    <div class="message-bubble message-ai">
+                        <div class="hanzi-text">你好！Lộ trình học đã được xóa thành công. Hãy bấm "Bắt Đầu Học" để bắt đầu hội thoại mới!</div>
+                    </div>`;
+                updateWeaknessUI();
+            }
+        });
+
+        // Tải danh sách điểm yếu từ LocalStorage khi khởi động
+        updateWeaknessUI();
+    </script>
+</body>
+</html>
