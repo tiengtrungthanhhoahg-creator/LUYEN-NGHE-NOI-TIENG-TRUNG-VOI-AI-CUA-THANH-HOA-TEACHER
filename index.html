@@ -358,7 +358,6 @@
     <main>
         <!-- SIDEBAR -->
         <div class="sidebar">
-            <!-- Cấu hình bài học -->
             <div class="card">
                 <div class="card-title">📖 Thiết Lập Bài Học</div>
                 <div class="form-group">
@@ -396,7 +395,6 @@
                 <button class="btn btn-secondary" id="reset-btn">Đặt lại hội thoại</button>
             </div>
 
-            <!-- Lộ trình cá nhân hóa -->
             <div class="card">
                 <div class="card-title">🎯 Lộ Trình Cá Nhân Hóa</div>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Điểm yếu được phát hiện qua các câu đối thoại sẽ được thống kê dưới đây:</p>
@@ -446,7 +444,7 @@
         // --- TRẠNG THÁI APP ---
         let currentHsk = "HSK 1";
         let currentScenario = "Giới thiệu bản thân";
-        let conversationHistory = [];
+        let conversationHistory = []; // Lưu trữ lịch sử dạng chuẩn: {role: "user" | "model", parts: [{text: "..."}]}
         let recognition;
         let isRecording = false;
 
@@ -466,18 +464,10 @@
         const FALLBACKS = {
             "Giới thiệu bản thân": {
                 "ai_message": {
-                    "hanzi": "你好！我叫张华，我是你的中文老师。你叫什么名字？你是哪国人？",
-                    "pinyin": "Nǐ hǎo! Wǒ jiào Zhāng Huá, wǒ shì nǐ de Zhōngwén lǎoshī. Nǐ jiào shénme míngzì? Nǐ shì nǎ guó rén?",
+                    "hanzi": "你好！我叫张华，我是你的中文老师. 你叫什么名字？你是哪国人？",
+                    "pinyin": "Nǐ hǎo! Wǒ jiào Zhāng Huá, wǒ s hì nǐ de Zhōngwén lǎoshī. Nǐ jiào shénme míngzì? Nǐ s hì nǎ guó rén?",
                     "vietnamese": "Chào bạn! Tôi tên Trương Hoa, là giáo viên tiếng Trung của bạn. Bạn tên là gì? Bạn là người nước nào?",
                     "prompt_question": "说说你的名字和国籍吧。"
-                }
-            },
-            "Làm quen bạn mới": {
-                "ai_message": {
-                    "hanzi": "你好！很高兴认识你。你是这里的学生吗？你学习什么专业？",
-                    "pinyin": "Nǐ hǎo! Hěn gāoxìng rènshì nǐ. Nǐ shì zhèlǐ de xuéshēng ma? Nǐ xuéxí shénme zhuānyè?",
-                    "vietnamese": "Chào bạn! Rất vui được quen biết bạn. Bạn có phải học sinh ở đây không? Bạn học ngành học nào?",
-                    "prompt_question": "告诉我你的专业和学校。"
                 }
             }
         };
@@ -488,16 +478,13 @@
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
-                utterance.rate = 0.85; // Tốc độ hơi chậm cho người học
+                utterance.rate = 0.85; 
                 
-                // Cố gắng tìm giọng chuẩn phổ thông Trung Quốc đại lục
                 const voices = window.speechSynthesis.getVoices();
                 const cnVoice = voices.find(voice => voice.lang === 'zh-CN' && voice.name.includes('Google'));
                 if (cnVoice) utterance.voice = cnVoice;
                 
                 window.speechSynthesis.speak(utterance);
-            } else {
-                alert("Trình duyệt không hỗ trợ phát âm!");
             }
         }
 
@@ -506,7 +493,7 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.continuous = false;
-            recognition.lang = 'zh-CN'; // Nhận dạng giọng nói tiếng Trung
+            recognition.lang = 'zh-CN'; 
             recognition.interimResults = false;
 
             recognition.onstart = () => {
@@ -525,16 +512,11 @@
                 const transcript = event.results[0][0].transcript;
                 textInput.value = transcript;
             };
-
-            recognition.onerror = (event) => {
-                console.error("Lỗi nhận dạng:", event.error);
-                alert("Có lỗi xảy ra khi nhận diện giọng nói. Xin thử lại!");
-            };
         }
 
         micBtn.addEventListener('click', () => {
             if (!recognition) {
-                alert("Thiết bị hoặc trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+                alert("Trình duyệt không hỗ trợ nhận diện giọng nói.");
                 return;
             }
             if (isRecording) {
@@ -560,7 +542,7 @@
         }
 
         function addWeakness(weakness) {
-            if (!weakness || weakness === "Không" || weakness === "None") return;
+            if (!weakness || weakness === "Không" || weakness === "None" || weakness.trim() === "") return;
             let weaknesses = JSON.parse(localStorage.getItem('weaknesses')) || [];
             if (!weaknesses.includes(weakness)) {
                 weaknesses.push(weakness);
@@ -570,50 +552,57 @@
         }
 
         // --- XỬ LÝ CHAT VÀ API ---
-        async function fetchAIResponse(userMessage) {
+        async function fetchAIResponse(userMessage = null) {
             loadingSpinner.style.display = 'flex';
             
-            // System prompt chi tiết hướng dẫn AI linh hoạt, liên tục phản hồi dựa trên ý của người dùng và chủ động hỏi mở rộng
-            const systemInstruction = `You are a warm, highly interactive native Chinese teacher. 
-Your goal is to conduct natural, organic Chinese conversations at ${currentHsk} level under scenario "${currentScenario}".
+            // SYSTEM INSTRUCTION RẤT MẠNH: Ép buộc AI phản hồi dựa trên câu chat của học sinh và cấm lặp lại câu hỏi
+            const systemInstruction = `You are a lively, highly interactive native Chinese teacher. 
+Your goal is to conduct a natural, flowy Chinese conversation at ${currentHsk} level under the scenario "${currentScenario}".
 
 CRITICAL BEHAVIOR:
-- You must NOT stick to a rigid script. Be fully flexible and reactive to whatever the student says (even if they go slightly off-topic or give brief answers).
-- Continuously ask open-ended questions related to the student's background, preferences, and real life to encourage them to speak.
-- Avoid answering with dry, static lines.
-- For every turn, evaluate the student's grammatical errors, word-order mistakes, and potential pronunciation pitfalls in simple Vietnamese.
-- Provide a clear tone or sandhi warning (pronunciation_feedback).
-- Detect and extract any specific weakness category (e.g., "Thanh điệu 4", "Bổ ngữ kết quả") for personalized path tracking.
+- You must closely read the user's latest input. Do NOT repeat previous questions. Respond directly to what they wrote or said.
+- Always ask a NEW, progressive, and open-ended question that naturally extends the current conversation topic (e.g., asking about their feelings, details, opinions, or a related sub-topic). Keep the conversation rolling like a real person.
+- Under NO circumstances should you loop or repeat the same question twice.
+- Provide a helpful evaluation of the student's Chinese input in simple Vietnamese, detecting pronunciation warnings, grammar/word-order errors, and proposing 1-2 native-like expressions.
+- Extract any specific weakness category (e.g., "Thanh điệu 4", "Bổ ngữ kết quả", "Danh từ chỉ nơi chốn") for personalized path tracking.
 
 Respond strictly in pure JSON with this exact schema:
 {
   "ai_message": {
-    "hanzi": "The next Chinese reply to maintain dynamic conversation",
+    "hanzi": "Your direct, natural response to the user's input, plus a new progressive open-ended question (In Chinese)",
     "pinyin": "Pinyin transcription",
-    "vietnamese": "Natural translation",
-    "prompt_question": "Open-ended question to nudge the student to talk more"
+    "vietnamese": "Natural Vietnamese translation",
+    "prompt_question": "Vietnamese hint or suggestion on how the student could answer this new question"
   },
   "evaluation": {
-    "score_pronunciation": score out of 100,
-    "score_grammar": score out of 100,
-    "score_overall": score out of 100,
-    "pronunciation_feedback": "Short feedback on tricky tones/pinyin in Vietnamese",
-    "grammar_feedback": "Constructive Vietnamese explanation of grammar/word order errors if any",
-    "native_suggestions": ["Alternative natural way 1", "Alternative natural way 2"],
+    "score_pronunciation": score 0-100,
+    "score_grammar": score 0-100,
+    "score_overall": score 0-100,
+    "pronunciation_feedback": "Short advice on tricky tones/Pinyin in Vietnamese",
+    "grammar_feedback": "Vietnamese explanation of grammar or word order errors, if any",
+    "native_suggestions": ["Native-like alternative 1", "Native-like alternative 2"],
     "detected_weakness": "One short specific phrase of their weakness to log, or empty"
   }
 }`;
 
-            const messages = [
-                { role: "user", parts: [{ text: `Mục tiêu bài học: ${currentScenario} trình độ ${currentHsk}. Gửi lời chào và mở đầu đoạn hội thoại bằng 1 câu hỏi mở.` }] }
-            ];
-
-            if (userMessage) {
-                // Thêm lịch sử nếu có
-                conversationHistory.forEach(item => {
-                    messages.push(item);
+            // Chuẩn bị payload gửi lên Gemini API
+            let payloadMessages = [];
+            
+            if (conversationHistory.length === 0) {
+                // Khởi tạo cuộc đối thoại mới
+                payloadMessages.push({
+                    role: "user",
+                    parts: [{ text: `Bắt đầu cuộc hội thoại chủ đề "${currentScenario}" ở trình độ ${currentHsk}. Hãy chào mừng và đặt câu hỏi mở đầu tiên.` }]
                 });
-                messages.push({ role: "user", parts: [{ text: userMessage }] });
+            } else {
+                // Đã có lịch sử, lấy lại toàn bộ lịch sử để AI ghi nhớ ngữ cảnh
+                payloadMessages = [...conversationHistory];
+                if (userMessage) {
+                    payloadMessages.push({
+                        role: "user",
+                        parts: [{ text: userMessage }]
+                    });
+                }
             }
 
             try {
@@ -621,7 +610,7 @@ Respond strictly in pure JSON with this exact schema:
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        contents: messages,
+                        contents: payloadMessages,
                         systemInstruction: { parts: [{ text: systemInstruction }] },
                         generationConfig: { responseMimeType: "application/json" }
                     })
@@ -631,22 +620,26 @@ Respond strictly in pure JSON with this exact schema:
                 loadingSpinner.style.display = 'none';
 
                 let rawText = data.candidates[0].content.parts[0].text;
-                // Safe JSON parse
                 rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
                 const parsedData = JSON.parse(rawText);
 
-                if (userMessage) {
-                    conversationHistory.push({ role: "user", parts: [{ text: userMessage }] });
+                // Cập nhật lịch sử hội thoại chuẩn chỉnh
+                if (conversationHistory.length === 0) {
+                    // Lượt đầu tiên (AI tự chào)
+                    conversationHistory.push({ role: "user", parts: [{ text: `Bắt đầu cuộc hội thoại chủ đề "${currentScenario}" ở trình độ ${currentHsk}.` }] });
+                    conversationHistory.push({ role: "model", parts: [{ text: JSON.stringify(parsedData.ai_message) }] });
+                } else {
+                    if (userMessage) {
+                        conversationHistory.push({ role: "user", parts: [{ text: userMessage }] });
+                    }
+                    conversationHistory.push({ role: "model", parts: [{ text: JSON.stringify(parsedData.ai_message) }] });
                 }
-                conversationHistory.push({ role: "model", parts: [{ text: rawText }] });
 
                 return parsedData;
 
             } catch (error) {
-                console.error("API error, switching to offline fallback:", error);
+                console.error("API Error:", error);
                 loadingSpinner.style.display = 'none';
-                
-                // Trả về fallback offline thông minh
                 return FALLBACKS[currentScenario] || FALLBACKS["Giới thiệu bản thân"];
             }
         }
@@ -665,27 +658,28 @@ Respond strictly in pure JSON with this exact schema:
                     <div class="pinyin-text">${data.ai_message.pinyin}</div>
                     <div class="translation-text"><strong>Dịch:</strong> ${data.ai_message.vietnamese}</div>
                     <div class="translation-text" style="color:var(--primary); font-weight:500;">
-                        <strong>Gợi ý trả lời:</strong> ${data.ai_message.prompt_question}
+                        <strong>Gợi ý:</strong> ${data.ai_message.prompt_question}
                     </div>
                 `;
                 
                 if (isEvaluation && data.evaluation) {
                     content += `
                         <div class="assessment-card">
-                            <span class="score-badge">Chấm điểm: ${data.evaluation.score_overall}/100</span>
+                            <span class="score-badge">Điểm nói: ${data.evaluation.score_overall}/100</span>
                             <div class="feedback-section">
                                 <h4>💡 Nhận xét phát âm & biến điệu:</h4>
                                 <p>${data.evaluation.pronunciation_feedback || 'Rất tốt!'}</p>
-                                <h4>✍️ Lỗi ngữ pháp & Hành văn:</h4>
+                                <h4>✍️ Ngữ pháp & Trật tự từ:</h4>
                                 <p>${data.evaluation.grammar_feedback || 'Chưa phát hiện lỗi sai.'}</p>
-                                <h4>🌟 Gợi ý kiểu người bản xứ:</h4>
+                                <h4>🌟 Cách nói tự nhiên của người bản xứ:</h4>
                                 <ul style="padding-left:1rem; margin-top:0.2rem;">
-                                    ${data.evaluation.native_suggestions.map(s => `<li>${s}</li>`).join('')}
+                                    ${data.evaluation.native_suggestions && data.evaluation.native_suggestions.length > 0 
+                                      ? data.evaluation.native_suggestions.map(s => `<li>${s}</li>`).join('') 
+                                      : '<li>Cách diễn đạt của bạn đã rất tự nhiên!</li>'}
                                 </ul>
                             </div>
                         </div>
                     `;
-                    // Lưu điểm yếu của học viên vào hệ thống cá nhân hóa
                     if (data.evaluation.detected_weakness) {
                         addWeakness(data.evaluation.detected_weakness);
                     }
@@ -709,7 +703,6 @@ Respond strictly in pure JSON with this exact schema:
             const res = await fetchAIResponse();
             if (res) {
                 appendMessage('ai', res);
-                // Tự động phát âm câu chào đầu tiên của AI
                 playAudio(res.ai_message.hanzi);
             }
         });
